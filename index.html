@@ -2,32 +2,174 @@
 <html>
 <body>
   <style>
-
-#grid {
-  background:
-radial-gradient(circle closest-side at 60% 43%, #ccc 26%, rgba(187,0,51,0) 27%),
-radial-gradient(circle closest-side at 40% 43%, #ccc 26%, rgba(187,0,51,0) 27%),
-radial-gradient(circle closest-side at 40% 22%, #f1ebe4 45%, rgba(221,51,85,0) 46%),
-radial-gradient(circle closest-side at 60% 22%, #f1ebe4 45%, rgba(221,51,85,0) 46%),
-radial-gradient(circle closest-side at 50% 35%, #f1ebe4 30%, rgba(221,51,85,0) 31%),
-
-radial-gradient(circle closest-side at 60% 43%, #ccc 26%, rgba(187,0,51,0) 27%) 50px 50px,
-radial-gradient(circle closest-side at 40% 43%, #ccc 26%, rgba(187,0,51,0) 27%) 50px 50px,
-radial-gradient(circle closest-side at 40% 22%, #f1ebe4 45%, rgba(221,51,85,0) 46%) 50px 50px,
-radial-gradient(circle closest-side at 60% 22%, #f1ebe4 45%, rgba(221,51,85,0) 46%) 50px 50px,
-radial-gradient(circle closest-side at 50% 35%, #f1ebe4 30%, rgba(221,51,85,0) 31%) 50px 50px;
-
-background-color:#ccc;
-background-size:100px 100px;
-
-
-border: solid 1px black;
-box-sizing: border-box;
-
-}
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    #grid {
+      background: url('images/pattern.png');
+      border: solid 3px black;
+      box-sizing: border-box;
+      float: left;
+    }
+    #info {
+      float: left;
+      margin-left: 5px;
+      width: 120px;
+    }
+    #next {
+      height: 70px;
+      border: solid 3px black;
+      margin-bottom: 10px;
+      background: url('images/pattern.png');
+    }
+    #stats {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border: solid 3px black;
+      margin-bottom: 5px;
+    }
+    #stats li {
+      border-bottom: solid 3px black;
+      padding: 5px;
+    }
+    #stats li:after {
+      content: ' ';
+      display: block;
+      clear:  both;
+    }
+    #stats li label {
+      float: left;
+    }
+    #stats .stats__value {
+      float: right;
+    }
+    #stats li:last-of-type {
+      border-bottom: none;
+    }
+    .combo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -15px;
+      margin-left: -25px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      width: 50px;
+      font-size: 25px;
+      font-weight: bold;
+      color: white;
+      opacity: 1;
+      transition: all 400ms linear;
+      -webkit-transition: all 400ms linear;
+    }
+    .combo_state_animated {
+      opacity: 0;
+      margin-top: -40px;
+    }
+    .flash {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      right: 0;
+      padding: 0 20px;
+      font-size: 40px;
+      text-align: center;
+      font-weight: bolder;
+      color: #E0E0E0;
+    }
+    .block {
+      position: absolute;
+      display: block;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+    }
+    .block::after {
+      position: absolute;
+      display: block;
+      content: ' ';
+      box-sizing: border-box;
+      border: solid 2px #000;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+    }
+    .block_color_red {
+      background-color: #FF0000;
+      border-top: solid 4px #FF6666;
+      border-right: solid 4px #FF6666;
+      border-bottom: solid 4px #CC0000;
+      border-left: solid 4px #CC0000;
+    }
+    .block_color_orange {
+      background-color: #FF6600;
+      border-top: solid 4px #FF9933;
+      border-right: solid 4px #FF9933;
+      border-bottom: solid 4px #CC6600;
+      border-left: solid 4px #CC6600;
+    }
+    .block_color_magenta {
+      background-color: #CC00FF;
+      border-top: solid 4px #CC66FF;
+      border-right: solid 4px #CC66FF;
+      border-bottom: solid 4px #9900CC;
+      border-left: solid 4px #9900CC;
+    }
+    .block_color_blue {
+      background-color: #0000FF;
+      border-top: solid 4px #6666FF;
+      border-right: solid 4px #6666FF;
+      border-bottom: solid 4px #0000CC;
+      border-left: solid 4px #0000CC;
+    }
+    .block_color_lime {
+      background-color: #00FF00;
+      border-top: solid 4px #66FF66;
+      border-right: solid 4px #66FF66;
+      border-bottom: solid 4px #00CC00;
+      border-left: solid 4px #00CC00;
+    }
+    .block_color_yellow {
+      background-color: #FFFF00;
+      border-top: solid 4px #FFFF99;
+      border-right: solid 4px #FFFF99;
+      border-bottom: solid 4px #FFCC00;
+      border-left: solid 4px #FFCC00;
+    }
+    .block_color_cyan {
+      background-color: #66CCFF;
+      border-top: solid 4px #99FFFF;
+      border-right: solid 4px #99FFFF;
+      border-bottom: solid 4px #3399CC;
+      border-left: solid 4px #3399CC;
+    }
+    .actions {
+      cursor: pointer;
+    }
   </style>
-  <div id="grid"></div>
-
+  <div id="container">
+    <div id="grid"></div>
+    <div id="info">
+      <div id="next"></div>
+      <ul id="stats">
+        <li id="stats__lvl">
+          <label>level</label>
+          <div class="stats__value"></div>
+        </li>
+        <li id="stats__score">
+          <label>score</label>
+          <div class="stats__value"></div>
+        </li>
+        <li id="stats__lines">
+          <label>lines</label>
+          <div class="stats__value"></div>
+        </li>
+      </ul>
+      <div class="actions" id="action_type_pause">pause</div>
+    </div>
+  </div>
   <script src="jquery.min.js"></script>
   <script src="app.js"></script>
 </body>

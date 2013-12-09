@@ -11,12 +11,17 @@
 
   var Tetris = function(options){
     this.$elem = $(options.elem);
-    this.unitHeight = 25;
-    this.unitWidth = 15;
+    this.unitHeight = 18;
+    this.unitWidth = 10;
     this.unit = unit;
     this.blocks = [];
     this.countRounds = 0;
+    this.level = 1;
+    this.linesRemoved = 0;
+    this.score = 0;
     this.currentSpeed = 500;
+    this.lastCombo = 0;
+    this.isPaused = false;
     this.run();
   };
 
@@ -43,7 +48,16 @@
     var randRotation = Math.round(Math.random() * 10) % angles.length;
     var shape = this.currentShape = new shapes[randObject]({rotation: angles[randRotation]});
     var shapeElems = shape.draw(this.$elem);
+    this.addKeyListeners();
+    this.setShapeInterval(this.currentSpeed);
 
+    $('#action_type_pause').on('click.tetrisPause', function(e) {
+      self.togglePause();
+    });
+  };
+
+  Tetris.prototype.addKeyListeners = function() {
+    var self = this;
     $('body').on('keydown.tetris', function(e) {
       switch (e.keyCode) {
         case KEY_CODES.LEFT:
@@ -66,11 +80,60 @@
           break;
       }
     });
-    if (++this.countRounds % 10 === 0) {
-      this.currentSpeed = Math.round(this.currentSpeed * 0.9);
-    }
-    this.setShapeInterval(this.currentSpeed);
+  };
 
+  Tetris.prototype.togglePause = function() {
+    if (this.isPaused){
+      this.addKeyListeners();
+      this.setShapeInterval(this.currentSpeed);
+      this.removeFlash();
+      $('#action_type_pause').html('pause');
+    } else {
+      clearInterval(this.interval);
+      $('body').off('keydown.tetris');
+      this.setFlash("PAUSE");
+      $('#action_type_pause').html('resume');
+    }
+    this.isPaused = !this.isPaused;
+  };
+
+  Tetris.prototype.increaseLevel = function() {
+    this.currentSpeed = Math.round(this.currentSpeed * 0.9);
+    this.level++;
+  };
+
+  Tetris.prototype.setFlash = function(msg) {
+    var $e = $('<div>').addClass('flash').html(msg);
+    this.$elem.append($e);
+  };
+
+  Tetris.prototype.removeFlash = function() {
+    this.$elem.find('.flash').remove();
+  };
+
+  Tetris.prototype.updateStats = function() {
+    this.score = this.score + this.level * this.lastCombo;
+    if (this.lastCombo > 1) {
+      this.alertCombo(this.lastCombo);
+    }
+    this.lastCombo = 0;
+    if (++this.countRounds % 10 === 0) {
+      this.increaseLevel();
+    }
+    $('#stats__lvl .stats__value').html(this.level);
+    $('#stats__lines .stats__value').html(this.linesRemoved);
+    $('#stats__score .stats__value').html(this.score);
+  };
+
+  Tetris.prototype.alertCombo = function(combo) {
+    var $c = $('<div>').addClass('combo').html(combo + 'x');
+    this.$elem.append($c);
+    setTimeout(function () {
+      $c.addClass("combo_state_animated");
+    });
+    $c.one('transitionend', function() {
+      $(this).remove();
+    });
   };
 
   Tetris.prototype.setShapeInterval = function(interval) {
@@ -84,6 +147,7 @@
   Tetris.prototype.stopRound = function() {
     clearInterval(this.interval);
     $('body').off('keydown.tetris');
+    $('#action_type_pause').off('click.tetrisPause');
     var blocks = this.currentShape.blocks;
     for (var i = 0; i < blocks.length; i++) {
       this.blocks.push(blocks[i]);
@@ -140,11 +204,15 @@
 
   Tetris.prototype.bottomReached = function() {
     var y = this.currentShape.currentY;
+    var linesRemoved = this.linesRemoved;
     this.stopRound();
     if (y === 0) {
-      alert('GAME OVER');
+      this.setFlash('GAME OVER');
     } else {
       this.removeFullLines();
+      linesRemoved = this.linesRemoved - linesRemoved;
+      this.lastCombo = linesRemoved;
+      this.updateStats();
       this.startRound();
     }
   };
@@ -176,6 +244,7 @@
       }
     }
     this.blocks = copy;
+    this.linesRemoved++;
   };
 
 
@@ -312,13 +381,10 @@
 
   Block.prototype.draw = function() {
     this.$elem = $('<div>').width(this.unit).height(this.unit)
+    .addClass('block block_color_' + this.color)
     .css({
-      backgroundColor: this.color,
-      position: 'absolute',
       left: (this.x * this.unit) + 'px',
-      top: (this.y * this.unit) + 'px',
-      border: 'solid black 1px',
-      boxSizing: 'border-box'
+      top: (this.y * this.unit) + 'px'
     });
     return this.$elem;
   };
@@ -372,7 +438,7 @@
       180: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 2, y: 1 }],
       270: [{ x: 0, y: 2 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 1, y: 2 }]
     },
-    color: 'green'
+    color: 'orange'
   });
 
   var L = Shape.extend({
@@ -382,7 +448,7 @@
       90: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 1, y: 2 }],
       0: [{ x: 2, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 }]
     },
-    color: 'green'
+    color: 'magenta'
   });
 
   var S = Shape.extend({
@@ -392,7 +458,7 @@
       180: [{ x: 1, y: 1 }, { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 0, y: 1 }],
       270: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 1, y: 2 }]
     },
-    color: 'pink'
+    color: 'blue'
   });
 
   var Z = Shape.extend({
@@ -402,7 +468,7 @@
       90: [{ x: 1, y: 1 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 1, y: 0 }],
       0: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 1 }]
     },
-    color: 'pink'
+    color: 'lime'
   });
 
   var T = Shape.extend({
@@ -422,7 +488,7 @@
       180: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 0, y: 3 }],
       270: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }, { x: 3, y: 0 }]
     },
-    color: 'blue'
+    color: 'cyan'
   });
 
 
@@ -431,4 +497,4 @@
       elem: '#grid'
     });
   });
-}(jQuery));
+}(window.jQuery));
